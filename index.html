@@ -52,7 +52,7 @@
 
                 <div class="nav-actions">
                     <a href="#login" class="login-link">Entrar</a>
-                    <a href="#doacao" class="donate-btn">FAÇA SUA DOAÇÃO</a>
+                    <a href="javascript:void(0)" class="donate-btn trigger-donation">FAÇA SUA DOAÇÃO</a>
                 </div>
 
                 <div class="mobile-menu-btn">
@@ -218,7 +218,7 @@
                         <p class="support-label">Precisamos do seu apoio!</p>
                         <h2 class="support-title">São Mais de 100 Crianças Atendidas Gratuitamente!</h2>
                         <p class="support-sub">Faça sua Tzedakah (Ato de Justiça)</p>
-                        <a href="#doacao" class="donate-btn-large">Ajude com uma Doação</a>
+                        <a href="javascript:void(0)" class="donate-btn-large trigger-donation">Ajude com uma Doação</a>
                     </div>
                 </div>
             </div>
@@ -317,6 +317,37 @@
                 <div class="modal-text">
                     <h2 id="modalTitle"></h2>
                     <p id="modalDescription"></p>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Donation Modal -->
+    <div id="donationModal" class="modal">
+        <div class="modal-content donation-modal-content">
+            <span class="close-modal close-donation-modal">&times;</span>
+            <div class="modal-body donation-modal-body">
+                <div class="donation-qr-container">
+                    <img id="donationQr" src="" alt="QR Code PIX">
+                    <div class="qr-placeholder" id="qrPlaceholder">
+                        <i class="fa-solid fa-spinner fa-spin"></i>
+                        <span>Gerando QR Code...</span>
+                    </div>
+                </div>
+                <div class="modal-text">
+                    <h2 class="audiowide-font">Faça sua Doação</h2>
+                    <p>Sua ajuda é fundamental para mantermos nossas atividades para mais de 100 crianças.</p>
+                    
+                    <div class="pix-key-box">
+                        <span class="pix-label">Chave PIX (CNPJ)</span>
+                        <div class="pix-copy-wrapper">
+                            <input type="text" value="02524275000150" id="pixKeyInput" readonly>
+                            <button id="copyPixBtn" class="copy-btn">
+                                <i class="fa-regular fa-copy"></i> Copiar
+                            </button>
+                        </div>
+                        <p class="pix-info">Ao escanear ou copiar, os dados da <strong>Associação Beneficente Geração TZK</strong> aparecerão no seu banco.</p>
+                    </div>
                 </div>
             </div>
         </div>

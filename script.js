@@ -202,8 +202,123 @@
         document.body.style.overflow = 'auto';
       }
     });
-  } else {
+    } else {
     console.error("Modal ou cards não encontrados no DOM", { modal, cardsCount: cards.length });
+  }
+
+  // --- Sistema de Doação PIX ---
+  
+  // Função para calcular CRC16 (necessário para o padrão PIX)
+  function crc16(data) {
+    let crc = 0xFFFF;
+    for (let i = 0; i < data.length; i++) {
+      crc ^= data.charCodeAt(i) << 8;
+      for (let j = 0; j < 8; j++) {
+        if ((crc & 0x8000) !== 0) {
+          crc = (crc << 1) ^ 0x1021;
+        } else {
+          crc <<= 1;
+        }
+      }
+    }
+    return (crc & 0xFFFF).toString(16).toUpperCase().padStart(4, '0');
+  }
+
+  // Função para gerar o payload do PIX (Estático)
+  function generatePixPayload(key, name, city) {
+    function formatField(id, val) {
+      return id + val.length.toString().padStart(2, '0') + val;
+    }
+
+    const gui = 'BR.GOV.BCB.PIX';
+    const keyField = formatField('01', key);
+    const merchantAccount = formatField('26', formatField('00', gui) + keyField);
+    
+    let payload = formatField('00', '01'); // Payload Format Indicator
+    payload += merchantAccount;
+    payload += formatField('52', '0000'); // Merchant Category Code
+    payload += formatField('53', '986');  // Transaction Currency (BRL)
+    payload += formatField('58', 'BR');   // Country Code
+    payload += formatField('59', name.substring(0, 25)); // Merchant Name
+    payload += formatField('60', city.substring(0, 15)); // Merchant City
+    payload += '62070503***'; // Additional Data Field (Reference)
+    payload += '6304'; // CRC16 Indicator
+
+    return payload + crc16(payload);
+  }
+
+  const donationModal = document.getElementById('donationModal');
+  const triggerBtns = document.querySelectorAll('.trigger-donation');
+  const closeDonationBtn = document.querySelector('.close-donation-modal');
+  const donationQrImg = document.getElementById('donationQr');
+  const qrPlaceholder = document.getElementById('qrPlaceholder');
+  const pixKeyInput = document.getElementById('pixKeyInput');
+  const copyPixBtn = document.getElementById('copyPixBtn');
+
+  const PIX_KEY = '02524275000150'; // CNPJ
+  const PIX_NAME = 'GERACAO TZK';
+  const PIX_CITY = 'BELO HORIZONTE';
+
+  if (donationModal && triggerBtns.length > 0) {
+    const pixPayload = generatePixPayload(PIX_KEY, PIX_NAME, PIX_CITY);
+    
+    // Atualiza o input com o código "Copia e Cola" real, não apenas a chave
+    if (pixKeyInput) pixKeyInput.value = pixPayload;
+
+    triggerBtns.forEach(btn => {
+      btn.addEventListener('click', () => {
+        donationModal.style.display = 'block';
+        document.body.style.overflow = 'hidden';
+
+        // Gera o QR Code via API se ainda não foi carregado
+        if (donationQrImg && (!donationQrImg.src || donationQrImg.src === window.location.href)) {
+          const qrUrl = `https://api.qrserver.com/v1/create-qr-code/?size=300x300&data=${encodeURIComponent(pixPayload)}`;
+          
+          donationQrImg.onload = () => {
+            qrPlaceholder.style.display = 'none';
+            donationQrImg.style.display = 'block';
+          };
+
+          donationQrImg.src = qrUrl;
+        }
+
+      });
+    });
+
+    if (closeDonationBtn) {
+      closeDonationBtn.addEventListener('click', () => {
+        donationModal.style.display = 'none';
+        document.body.style.overflow = 'auto';
+      });
+    }
+
+    window.addEventListener('click', (event) => {
+      if (event.target == donationModal) {
+        donationModal.style.display = 'none';
+        document.body.style.overflow = 'auto';
+      }
+    });
+
+    // Lógica de Copiar
+    if (copyPixBtn && pixKeyInput) {
+      copyPixBtn.addEventListener('click', () => {
+        pixKeyInput.select();
+        pixKeyInput.setSelectionRange(0, 99999); // Para dispositivos móveis
+
+        navigator.clipboard.writeText(pixKeyInput.value).then(() => {
+          const originalText = copyPixBtn.innerHTML;
+          copyPixBtn.innerHTML = '<i class="fa-solid fa-check"></i> Copiado!';
+          copyPixBtn.classList.add('success');
+
+          setTimeout(() => {
+            copyPixBtn.innerHTML = originalText;
+            copyPixBtn.classList.remove('success');
+          }, 2000);
+        }).catch(err => {
+          console.error('Erro ao copiar: ', err);
+        });
+      });
+    }
   }
 })();
 
